@@ -1,0 +1,48 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: jinan-museum-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_DATABASE: jinan_museum
+      MYSQL_USER: museum
+      MYSQL_PASSWORD: museum123
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123456"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    # 需要从宿主机直连数据库时放开（注意 3306 冲突）：
+    # ports:
+    #   - "3307:3306"
+
+  backend:
+    build: ./backend
+    container_name: jinan-museum-backend
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: "3306"
+      MYSQL_DATABASE: jinan_museum
+      MYSQL_USER: museum
+      MYSQL_PASSWORD: museum123
+      APP_UPLOAD_DIR: /data/uploads
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: jinan-museum-frontend
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql-data:
+  uploads:

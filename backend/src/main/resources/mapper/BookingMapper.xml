@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinanmuseum.mapper.BookingMapper">
+
+    <!-- 基础 CRUD 方法由 MyBatis-Plus 自动生成 -->
+
+    <!-- 自定义查询方法 -->
+    <select id="selectByPhoneAndDateRange" resultType="Booking">
+        SELECT * FROM booking 
+        WHERE phone = #{phone} 
+        AND visit_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByPhoneAndDate" resultType="Booking">
+        SELECT * FROM booking 
+        WHERE phone = #{phone} 
+        AND visit_date = #{date}
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectCountByDateAndSlot" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM booking 
+        WHERE visit_date = #{date} 
+        AND slot = #{slot}
+        AND status = 'ACTIVE'
+    </select>
+
+    <select id="selectByCode" resultType="Booking">
+        SELECT * FROM booking 
+        WHERE code = #{code}
+    </select>
+
+    <select id="selectByPhone" resultType="Booking">
+        SELECT * FROM booking 
+        WHERE phone = #{phone}
+        ORDER BY created_at DESC
+    </select>
+
+</mapper>

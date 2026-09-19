@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: museum-backend
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:jinan_museum}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USER:museum}
+    password: ${MYSQL_PASSWORD:museum123}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+      data-locations: classpath:db/data.sql
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+server:
+  port: 8080
+
+app:
+  jwt-secret: ${JWT_SECRET:jinan-museum-demo-secret-0123456789abcdef}
+  jwt-expire-hours: 12
+  upload-dir: ${APP_UPLOAD_DIR:./uploads}
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.jinanmuseum.entity

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinanmuseum.mapper.BookingGuestMapper">
+
+    <select id="selectByBookingId" resultType="BookingGuest">
+        SELECT * FROM booking_guest
+        WHERE booking_id = #{bookingId}
+        ORDER BY id
+    </select>
+
+    <!-- R7 查重：指定参观日期已有非取消单占用的证件号 -->
+    <select id="selectByDateAndIdCard" resultType="BookingGuest">
+        SELECT g.* FROM booking_guest g
+        JOIN booking b ON g.booking_id = b.id
+        WHERE b.visit_date = #{date}
+          AND b.status != 'CANCELLED'
+          AND g.id_card = #{idCard}
+    </select>
+
+    <!-- 看板：指定日期时段已约人数（ACTIVE 单的入馆人合计） -->
+    <select id="countByDateAndSlot" resultType="int">
+        SELECT COUNT(*) FROM booking_guest g
+        JOIN booking b ON g.booking_id = b.id
+        WHERE b.visit_date = #{date}
+          AND b.slot = #{slot}
+          AND b.status = 'ACTIVE'
+    </select>
+
+    <!-- 看板：指定日期全天已约人数 -->
+    <select id="countByDate" resultType="int">
+        SELECT COUNT(*) FROM booking_guest g
+        JOIN booking b ON g.booking_id = b.id
+        WHERE b.visit_date = #{date}
+          AND b.status = 'ACTIVE'
+    </select>
+
+</mapper>

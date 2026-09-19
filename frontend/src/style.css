@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-ink text-textMain font-sans antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-panel;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-line rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-clay;
+}

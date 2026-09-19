@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinanmuseum.mapper.CollectionItemMapper">
+
+    <!-- 已发布精选，按 sort_order -->
+    <select id="selectByPublished" resultType="CollectionItem">
+        SELECT * FROM collection_item
+        WHERE published = 1
+        ORDER BY sort_order
+    </select>
+
+</mapper>

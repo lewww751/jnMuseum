@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinanmuseum.mapper.ExhibitionMapper">
+
+    <!-- 已发布展览按类别过滤；排序：常设在前（sort_order），临展按结束日期倒序 -->
+    <select id="selectByKind" resultType="Exhibition">
+        SELECT * FROM exhibition
+        WHERE published = 1
+          AND kind = #{kind}
+        ORDER BY CASE WHEN kind = 'PERMANENT' THEN 0 ELSE 1 END,
+                 sort_order,
+                 end_date DESC
+    </select>
+
+</mapper>

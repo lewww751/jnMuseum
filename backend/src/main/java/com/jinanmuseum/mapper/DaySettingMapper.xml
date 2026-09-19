@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinanmuseum.mapper.DaySettingMapper">
+
+    <select id="selectByDate" resultType="com.jinanmuseum.entity.DaySetting">
+        SELECT * FROM day_setting WHERE setting_date = #{date}
+    </select>
+
+</mapper>
