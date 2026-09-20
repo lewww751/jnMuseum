@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.jinanmuseum.mapper.MuseumEventMapper">
-
-    <select id="selectByCategory" resultType="com.jinanmuseum.entity.MuseumEvent">
-        SELECT * FROM museum_event WHERE category = #{category}
-    </select>
-
-</mapper>

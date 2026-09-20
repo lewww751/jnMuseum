@@ -6,4 +6,5 @@ import org.apache.ibatis.annotations.Param;
 
 public interface SlotCapacityMapper extends BaseMapper<SlotCapacity> {
     SlotCapacity selectByDateAndSlot(@Param("date") String date, @Param("slot") String slot);
+    SlotCapacity selectByDateAndSlotForUpdate(@Param("date") String date, @Param("slot") String slot);
 }

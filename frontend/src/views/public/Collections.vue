@@ -12,7 +12,7 @@
         >
           <div class="relative">
             <img
-              :src="collection.imageUrl"
+              :src="collection.image"
               :alt="collection.name"
               class="w-full h-48 object-cover"
             />
@@ -25,7 +25,7 @@
           </div>
           <div class="p-4">
             <h3 class="font-medium text-textMain mb-1">{{ collection.name }}</h3>
-            <p class="text-textSub text-sm mb-2">{{ collection.period }}</p>
+            <p class="text-textSub text-sm mb-2">{{ collection.era }}</p>
             <p class="text-textSub text-xs">{{ collection.category }}</p>
           </div>
         </div>

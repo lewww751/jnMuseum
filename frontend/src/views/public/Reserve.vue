@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between mb-8">
         <div class="flex items-center">
           <div
-            v-for="(step, index) in steps"
+            v-for="(_, index) in steps"
             :key="index"
             class="flex items-center"
           >
@@ -291,14 +291,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
 import { bookingApi } from '@/api/public'
-import type { DayAvailability, SlotAvailability, BookingRequest, BookingResponse, BookingGuest, Slot } from '@/types'
+import type { DayAvailability, SlotAvailability, BookingRequest, BookingResponse } from '@/types'
 import { validateIdCard as validateIdCardUtil, validatePhone as validatePhoneUtil } from '@/utils/validation'
 import QRCode from 'qrcode'
 import PublicLayout from '@/layouts/PublicLayout.vue'
-
-const router = useRouter()
 
 const steps = [
   { title: '选择日期', description: '请选择您希望参观的日期' },

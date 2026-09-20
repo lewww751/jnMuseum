@@ -3,6 +3,8 @@ package com.jinanmuseum.controller.public_;
 import com.jinanmuseum.common.Result;
 import com.jinanmuseum.domain.BookingPolicy;
 import com.jinanmuseum.domain.SlotTimes;
+import com.jinanmuseum.dto.BookingCreateRequest;
+import com.jinanmuseum.dto.CancelRequest;
 import com.jinanmuseum.entity.Booking;
 import com.jinanmuseum.entity.BookingGuest;
 import com.jinanmuseum.entity.SlotCapacity;
@@ -17,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/booking")
@@ -85,40 +86,67 @@ public class BookingController {
         return Result.success(Map.of("days", days));
     }
 
+    /** 创建预约（SPEC §5.1：JSON body，R1–R8、R11 服务端强制） */
     @PostMapping
-    public Result<Booking> createBooking(
-            @RequestParam String phone,
-            @RequestParam String visitDate,
-            @RequestParam String slot,
-            @RequestBody List<BookingGuest> guests) {
-        return bookingService.createBooking(phone, visitDate, slot, guests);
+    public Result<Map<String, Object>> createBooking(@RequestBody BookingCreateRequest request) {
+        List<BookingGuest> guests = new ArrayList<>();
+        if (request.guests() != null) {
+            for (BookingCreateRequest.GuestInput input : request.guests()) {
+                BookingGuest guest = new BookingGuest();
+                guest.setGuestType(input.type());
+                guest.setName(input.name());
+                guest.setIdCard(input.idCard());
+                guests.add(guest);
+            }
+        }
+        Booking booking = bookingService.createBooking(
+                request.visitDate(), request.slot(), request.phone(), guests);
+        return Result.success(createSuccessView(booking));
     }
 
+    /** R12 查询：预约码，或手机号 + 证件号；返回预约单视图（证件号掩码） */
     @GetMapping("/lookup")
-    public Result<List<Booking>> lookupBooking(
+    public Result<List<Map<String, Object>>> lookup(
             @RequestParam(required = false) String code,
             @RequestParam(required = false) String phone,
             @RequestParam(required = false) String idCard) {
-        if (code != null) {
-            Result<Booking> result = bookingService.getBookingByCode(code);
-            Booking booking = result.getData();
-            return Result.success(booking != null ? List.of(booking) : List.of());
-        } else if (phone != null && idCard != null) {
-            List<Booking> bookings = bookingService.getBookingsByPhone(phone);
-            // Filter by idCard
-            bookings = bookings.stream()
-                    .filter(b -> b.getGuests().stream()
-                            .anyMatch(g -> g.getIdCard().equals(idCard)))
-                    .collect(Collectors.toList());
-            return Result.success(bookings);
-        }
-        return Result.error("请提供 code 或 phone+idCard");
+        List<Map<String, Object>> views = bookingService.lookup(code, phone, idCard).stream()
+                .map(bookingService::toView)
+                .collect(java.util.stream.Collectors.toList());
+        return Result.success(views);
     }
 
+    /** R9 取消：code + phone 双凭证，返回取消后的预约单视图 */
     @PostMapping("/cancel")
-    public Result<Booking> cancelBooking(
-            @RequestParam String code,
-            @RequestParam String phone) {
-        return bookingService.cancelBooking(code, phone);
+    public Result<Map<String, Object>> cancelBooking(@RequestBody CancelRequest request) {
+        Booking booking = bookingService.cancelBooking(request.code(), request.phone());
+        return Result.success(bookingService.toView(booking));
+    }
+
+    private Map<String, Object> createSuccessView(Booking booking) {
+        Map<String, Object> view = new HashMap<>();
+        view.put("code", booking.getCode());
+        view.put("visitDate", booking.getVisitDate());
+        view.put("slotLabel", SlotTimes.getLabel(booking.getSlot()));
+        view.put("createdAt", booking.getCreatedAt() == null
+                ? null
+                : booking.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        List<Map<String, Object>> guests = new ArrayList<>();
+        for (BookingGuest g : booking.getGuests()) {
+            Map<String, Object> gv = new HashMap<>();
+            gv.put("name", g.getName());
+            gv.put("idCardMasked", maskIdCard(g.getIdCard()));
+            gv.put("type", g.getGuestType());
+            guests.add(gv);
+        }
+        view.put("guests", guests);
+        return view;
+    }
+
+    private String maskIdCard(String idCard) {
+        if (idCard == null || idCard.length() < 9) {
+            return "****";
+        }
+        return idCard.substring(0, 4) + "**********" + idCard.substring(idCard.length() - 4);
     }
 }

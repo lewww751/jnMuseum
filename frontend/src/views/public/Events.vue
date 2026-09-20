@@ -65,7 +65,7 @@
             <span class="text-xs text-textSub">{{ event.category }}</span>
           </div>
           <h3 class="font-medium text-textMain mb-2">{{ event.title }}</h3>
-          <p class="text-textSub text-sm line-clamp-2 mb-4">{{ event.description }}</p>
+          <p class="text-textSub text-sm line-clamp-2 mb-4">{{ event.summary }}</p>
           <div class="text-xs text-textSub">
             <p>📅 {{ formatDateTime(event.startTime) }}</p>
             <p v-if="event.endTime" class="mt-1">🕐 {{ formatEndTime(event.endTime) }}</p>

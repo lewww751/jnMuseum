@@ -1,15 +1,29 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
+import type { AxiosRequestConfig } from 'axios'
 import type { Result } from '@/types'
 
-const apiClient = axios.create({
+const rawClient = axios.create({
   baseURL: '/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
   }
 })
+
+/**
+ * 响应拦截器已把 Result 解包为 data，
+ * 因此对外暴露的类型签名直接返回业务类型 T，而非 AxiosResponse<T>。
+ */
+type UnwrappedClient = Omit<ReturnType<typeof axios.create>, 'get' | 'post' | 'put' | 'delete'> & {
+  get: <T = unknown>(url: string, config?: AxiosRequestConfig) => Promise<T>
+  post: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) => Promise<T>
+  put: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) => Promise<T>
+  delete: <T = unknown>(url: string, config?: AxiosRequestConfig) => Promise<T>
+}
+
+const apiClient = rawClient as unknown as UnwrappedClient
 
 // Request interceptor for admin authentication
 apiClient.interceptors.request.use(
@@ -26,7 +40,7 @@ apiClient.interceptors.request.use(
 )
 
 // Response interceptor for error handling
-apiClient.interceptors.response.use(
+rawClient.interceptors.response.use(
   (response) => {
     const result: Result = response.data
     if (result.code === 0) {

@@ -71,7 +71,7 @@
               {{ getEventStatusLabel(event.eventStatus) }}
             </span>
             <h4 class="font-medium text-textMain mb-2">{{ event.title }}</h4>
-            <p class="text-textSub text-sm line-clamp-2">{{ event.description }}</p>
+            <p class="text-textSub text-sm line-clamp-2">{{ event.summary }}</p>
             <p class="text-textSub text-xs mt-2">{{ formatDate(event.startTime) }}</p>
           </div>
         </div>
@@ -95,7 +95,7 @@
         >
           <div class="relative">
             <img
-              :src="collection.imageUrl"
+              :src="collection.image"
               :alt="collection.name"
               class="w-full h-48 object-cover"
             />
@@ -108,7 +108,7 @@
           </div>
           <div class="p-4">
             <h4 class="font-medium text-textMain mb-1">{{ collection.name }}</h4>
-            <p class="text-textSub text-sm">{{ collection.period }}</p>
+            <p class="text-textSub text-sm">{{ collection.era }}</p>
           </div>
         </div>
       </div>

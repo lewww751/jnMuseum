@@ -65,55 +65,6 @@ DDL 以仓库中 `backend/src/main/resources/db/schema.sql` 为准（已提供�
 
 取消需要 `code + phone` 双凭证（phone 须匹配预约单）。已核销不可取消；取消过的单可重新预约同日（R7 只看非 CANCELLED）。
 
-## 5. REST API 契约
-
-- 前缀 `/api`；JSON；日期 `yyyy-MM-dd`，时间 `yyyy-MM-dd HH:mm:ss`。
-- 成功：HTTP 200/201，`{"code":0,"message":"ok","data":...}`。
-- 失败：`{"code":非0,"message":"中文错误信息","data":null}`；业务错误 HTTP 400，未登录/令牌失效 401，不存在 404。前端只展示 message。
-
-### 5.1 观众端（无需鉴权）
-
-| 方法/路径 | 说明 |
-|---|---|
-| GET `/api/exhibitions?kind=` | 已发布列表。kind 可选过滤。字段：id,title,kind,hall,summary,coverImage,startDate,endDate,**displayStatus**(ONGOING/UPCOMING/ENDED，常设恒 ONGOING，临展按日期推导)。排序：常设(sort_order)在前，临展按 endDate 倒序 |
-| GET `/api/exhibitions/{id}` | 详情（含 content 长文） |
-| GET `/api/events` | 已发布，按 startTime 倒序。字段含 **eventStatus**：now<start→UPCOMING；now>COALESCE(end,start+2h)→ENDED；否则 ONGOING |
-| GET `/api/collections` | 已发布精选，按 sort_order |
-| GET `/api/guide/{key}` | key∈visit\|about → `{"content": "..."}` |
-| GET `/api/booking/availability` | 今天起 7 天：`days:[{date, weekday(如 周五), isOpen, closeReason, slots:[{slot, label(上午 9:00–12:00/下午 13:00–16:30), capacity, booked, remaining, bookable, reason}]}]`。bookable=isOpen && remaining>0 && 窗口内 && 未过当天截止 |
-| POST `/api/booking` | `{visitDate, slot(AM/PM), phone, guests:[{type(PRIMARY/COMPANION), name, idCard}]}` → 201 `data:{code, visitDate, slotLabel, guests:[...], createdAt}`。所有规则 R1–R8 校验，中文报错 |
-| GET `/api/booking/lookup?code=` 或 `?phone=&idCard=` | → `data:[预约单视图数组]`。视图：code, visitDate, weekday, slot, slotLabel, status, statusLabel(有效/已取消/已入馆), createdAt, **cancellable**(bool), cancelDeadline(参观日前一天 24:00，展示用), guests:[{name, idCardMasked(前4后4), type}] |
-| POST `/api/booking/cancel` | `{code, phone}` → 取消后的预约单视图。报错：预约码不存在/手机号不匹配/该预约已取消/已核销无法取消/已过取消截止时间 |
-
-### 5.2 后台（`/api/admin/**`，JWT Bearer，除 login）
-
-| 方法/路径 | 说明 |
-|---|---|
-| POST `/api/admin/login` | `{username,password}` → `{token}`（HS256，12h，sub=username） |
-| GET `/api/admin/dashboard` | `{today:[{slot,label,capacity,booked}], tomorrow:[...], last7Days:[{date,booked}], stats:{activeBookings, todayCheckIns, exhibitionCount, eventCount, collectionCount}}` |
-| GET/POST/PUT/DELETE `/api/admin/exhibitions[/{id}]` | CRUD（含未发布）。POST/PUT body 为 exhibition 全字段 JSON |
-| GET/POST/PUT/DELETE `/api/admin/events[/{id}]` | 活动 CRUD |
-| GET/POST/PUT/DELETE `/api/admin/collections[/{id}]` | 藏品 CRUD |
-| PUT `/api/admin/guide/{key}` | `{content}` |
-| GET `/api/admin/calendar?month=2026-09` | 整月：`days:[{date, weekday, defaultOpen, isOpen(生效值), override:{isOpen,reason}\|null, slots:{AM:{capacity,booked},PM:{...}}}]` |
-| PUT `/api/admin/day-setting` | `{date, isOpen, reason?}` upsert；DELETE `/api/admin/day-setting?date=` 移除覆盖 |
-| PUT `/api/admin/slot-capacity` | `{date, slot, capacity}` upsert（1–5000） |
-| GET `/api/admin/bookings?visitDate=&slot=&status=&keyword=&page=1&size=10` | 分页。keyword 模糊匹配 code/姓名/证件号/手机号。返回 records（含 guests）+total |
-| POST `/api/admin/bookings/{code}/check-in` | R10 校验后核销 |
-| POST `/api/admin/upload` | multipart `file`（jpg/png/webp，≤5MB）→ `{url:"/uploads/xxxx.jpg"}`。文件名随机 UUID；存 `${app.upload-dir}`，Spring 以 `/uploads/**` 静态映射对外提供 |
-
-## 6. 后端实现要求
-
-- 包 `com.jinanmuseum`：`config/`(MybatisPlus 分页插件、CORS(允许 localhost:5173)、JWT 过滤器、全局异常处理)、`common/`(Result、BusinessException、PageResult)、`entity/`、`mapper/`、`domain/`(IdCardValidator、OpenDayRule、BookingPolicy、SlotTimes)、`dto/`、`controller/`(public + admin)、`runner/`(AdminSeedRunner)。
-- JWT 过滤器：`/api/admin/**` 放行 `/api/admin/login`，其余无有效 Bearer → 401。
-- `application.yml`：数据源用环境变量（MYSQL_HOST/PORT/DATABASE/USER/PASSWORD，默认 localhost/jinan_museum/museum/museum123）；JDBC 参数 `useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true`；`app.jwt-secret`/`app.jwt-expire-hours:12`/`app.upload-dir:./uploads`。
-- 单测（必须先行，`mvn test` 全绿）：
-  - `IdCardValidatorTest`：合法含 X、checksum 错、长度错、非法字符。
-  - `BookingPolicyTest`：R1 边界（今天/今天+6 过，+7/昨天 不过）、R2（今天 AM 在 09:00 后拒、PM 在 13:00 前过、未来日期不受限）、R9（前一天 23:59 过、当天 00:00 后拒）、R10。
-  - `OpenDayRuleTest`：R3 四象限（周一默认闭、周一+override 开、周日默认开、周日+override 闭）。
-  - `BookingServiceTest`(Mockito)：R7 跨单同行人查重、R8 容量边界（余 2 递 3 拒）、R4 单内证件重复、R11 码重试。
-- 时间注入：领域类接收 `Clock`（生产 Bean 用 `Clock.system(ZoneId.of("Asia/Shanghai"))`），测试用固定 Clock。
-
 ## 7. 前端实现要求
 
 ### 7.1 工程与结构

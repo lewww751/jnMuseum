@@ -8,4 +8,12 @@
           AND slot = #{slot}
     </select>
 
+    <!-- R8 防超卖：事务内锁定容量行 -->
+    <select id="selectByDateAndSlotForUpdate" resultType="SlotCapacity">
+        SELECT * FROM slot_capacity
+        WHERE capacity_date = #{date}
+          AND slot = #{slot}
+        FOR UPDATE
+    </select>
+
 </mapper>

@@ -6,7 +6,6 @@ import type {
   Exhibition,
   MuseumEvent,
   CollectionItem,
-  GuideContent,
   CalendarDay,
   DaySettingRequest,
   SlotCapacityRequest,
@@ -61,7 +60,10 @@ export const adminGuideApi = {
 
 // Admin API - Calendar
 export const adminCalendarApi = {
-  getMonth: (month: string) => apiClient.get<CalendarDay[]>('/admin/calendar', { params: { month } }),
+  getMonth: async (month: string): Promise<CalendarDay[]> => {
+    const data = await apiClient.get<{ month: string; days: CalendarDay[] }>('/admin/calendar', { params: { month } })
+    return data.days
+  },
   setDaySetting: (data: DaySettingRequest) => apiClient.put('/admin/day-setting', data),
   removeDaySetting: (date: string) => apiClient.delete('/admin/day-setting', { params: { date } }),
   setSlotCapacity: (data: SlotCapacityRequest) => apiClient.put('/admin/slot-capacity', data)

@@ -30,25 +30,27 @@ export type EventStatus = 'UPCOMING' | 'ONGOING' | 'ENDED'
 export interface MuseumEvent {
   id: number
   title: string
-  description: string
   category: string
+  location?: string
+  summary?: string
+  coverImage?: string
   startTime: string
   endTime?: string
   eventStatus: EventStatus
-  published: boolean
+  published?: boolean
 }
 
 // Collection types
 export interface CollectionItem {
   id: number
   name: string
-  description: string
+  era: string
   category: string
-  period: string
-  imageUrl: string
-  isHighlight: boolean
-  sortOrder: number
-  published: boolean
+  description: string
+  image: string
+  isHighlight?: boolean
+  sortOrder?: number
+  published?: boolean
 }
 
 // Guide types

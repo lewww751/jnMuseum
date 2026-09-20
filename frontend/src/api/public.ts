@@ -19,7 +19,7 @@ export const exhibitionApi = {
 
 // Public API - Events
 export const eventApi = {
-  getList: () => apiClient.get<MuseumEvent[]>('/events')
+  getList: (category?: string) => apiClient.get<MuseumEvent[]>('/events', { params: { category } })
 }
 
 // Public API - Collections
@@ -34,7 +34,10 @@ export const guideApi = {
 
 // Public API - Booking
 export const bookingApi = {
-  getAvailability: () => apiClient.get<DayAvailability[]>('/booking/availability'),
+  getAvailability: async (): Promise<DayAvailability[]> => {
+    const data = await apiClient.get<{ days: DayAvailability[] }>('/booking/availability')
+    return data.days
+  },
   create: (data: BookingRequest) => apiClient.post<BookingResponse>('/booking', data),
   lookupByCode: (code: string) => apiClient.get<BookingView[]>('/booking/lookup', { params: { code } }),
   lookupByPhoneAndIdCard: (phone: string, idCard: string) =>

@@ -102,7 +102,7 @@ const router = createRouter({
 })
 
 // Auth guard
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const adminStore = useAdminStore()
 
   if (to.meta.requiresAuth && !adminStore.isAuthenticated) {
